@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="MeasureCam · 用手机摄像头 AR/视觉测量物体长度与面积">
+<title>MeasureCam · 相机测量</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <header id="topbar">
+    <div class="brand"><b>📐</b> MeasureCam</div>
+    <div id="modeSwitch" class="segmented">
+      <button class="seg active" data-mode="ar">AR测量</button>
+      <button class="seg" data-mode="est">估算测量</button>
+    </div>
+    <button id="installBtn" class="ghost hidden">安装App</button>
+  </header>
+
+  <div id="viewport">
+    <video id="cam" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <div id="xrOverlay"></div>
+    <div id="reticle"><div class="ring"></div><div class="dot"></div></div>
+    <div id="statusPill" class="pill hidden"></div>
+    <div id="hint" class="hint"></div>
+    <div id="errToast"></div>
+  </div>
+
+  <div id="resultCard">
+    <div class="result-main"><span id="resValue">--</span><span id="resUnit">cm</span></div>
+    <div class="result-sub" id="resSub"></div>
+    <div style="margin-top:8px;text-align:right"><button id="btnSave" class="ghost">保存</button></div>
+  </div>
+
+  <footer id="controls">
+    <button id="btnClear" class="ctrl">清除</button>
+    <button id="btnModeMeasure" class="ctrl primary" data-measure="length">测长度</button>
+    <button id="btnUndo" class="ctrl">撤销</button>
+    <button id="btnUnit" class="ctrl">cm</button>
+    <button id="btnCalib" class="ctrl">校准</button>
+    <button id="btnHistory" class="ctrl">历史</button>
+  </footer>
+
+  <!-- 校准 sheet（估算模式） -->
+  <div id="calibSheet" class="sheet hidden">
+    <div class="sheet-head"><h3>测量参数校准</h3><button class="sheet-close" data-close="calibSheet">✕</button></div>
+    <div class="sheet-body">
+      <div class="field">
+        <label>相机离地高度 <output id="oHeight">1.60 m</output></label>
+        <input type="range" id="iHeight" min="0.6" max="2.0" step="0.01" value="1.60">
+      </div>
+      <div class="field">
+        <label>镜头垂直视场角(VFOV) <output id="oFov">60°</output></label>
+        <input type="range" id="iFov" min="30" max="90" step="1" value="60">
+      </div>
+      <div class="note">
+        <b>原理</b>：把画面按你设定的「相机高度 + 视场角」反投影到地面，估算真实尺寸。
+        视场角与设备镜头有关，可用下面的「已知长度校准」自动修正，精度会大幅提升。<br><br>
+        <b>已知长度校准</b>：先切到「测长度」，放一把已知长度的直尺（或银行卡，长 85.6mm）在地面上，沿尺子两端各点一下，然后点下方按钮，输入真实长度即可自动修正视场角。
+      </div>
+      <button id="btnCalibApply" class="btn-big" style="width:100%;margin-top:10px">用最后两点校准</button>
+    </div>
+  </div>
+
+  <!-- 历史 sheet -->
+  <div id="histSheet" class="sheet hidden">
+    <div class="sheet-head"><h3>测量历史</h3><button class="sheet-close" data-close="histSheet">✕</button></div>
+    <div class="sheet-body" id="histList"></div>
+  </div>
+
+  <!-- 启动 / 权限 -->
+  <div id="startOverlay">
+    <div class="start-logo">📐</div>
+    <h1>MeasureCam</h1>
+    <p>用手机摄像头测量物体<b>长度</b>与<b>面积</b>。<br>
+    支持「AR真实测量」(需 ARCore 安卓机) 与「纯视觉估算」两种模式。</p>
+    <div class="mode-row">
+      <button class="mode-chip sel" data-pick="ar">AR 测量</button>
+      <button class="mode-chip" data-pick="est">视觉估算</button>
+    </div>
+    <button id="btnStart" class="btn-big">开始测量</button>
+    <p style="margin-top:16px;font-size:12px">需要授予摄像头权限；AR模式需在支持 ARCore 的安卓 Chrome 中使用。</p>
+  </div>
+
+</div>
+
+<script src="js/three.min.js"></script>
+<script src="js/estimate-mode.js"></script>
+<script src="js/ar-mode.js"></script>
+<script src="js/app.js"></script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
